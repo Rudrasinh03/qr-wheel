@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AR Luxury Data Spin - Updated</title>
+<title>AR Luxury Data Spin - Fixed Codes</title>
 
 <!-- A-Frame / MindAR -->
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -15,21 +15,20 @@
   --gold:#d4af37;--gold-light:#f7e7a5;--gold-dark:#8a6d1c;--dark-bg:rgba(10,10,10,0.95);
 }
 html,body{height:100%;margin:0;font-family:'Montserrat',sans-serif;background:transparent;overflow:hidden;}
-#status{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,0.6);padding:6px 12px;border-radius:10px;z-index:9999;font-size:13px;transition:0.3s;}
-.choice-btn{background:linear-gradient(135deg,var(--gold),var(--gold-light));border:2px solid var(--gold-dark);padding:12px 28px;border-radius:30px;color:#000;font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 0 20px rgba(212,175,55,0.4);transition:0.3s;}
-.choice-btn:hover{transform:scale(1.05);}
+#status{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,0.6);padding:6px 12px;border-radius:10px;z-index:9999;font-size:13px;}
+.choice-btn{background:linear-gradient(135deg,var(--gold),var(--gold-light));border:2px solid var(--gold-dark);padding:14px 32px;border-radius:30px;color:#000;font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 0 20px rgba(212,175,55,0.4);}
 
-#arChoices{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);display:none;z-index:9999;opacity:0;transition:opacity 0.5s;}
+/* UI positions */
+#arChoices{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);display:none;z-index:9999;}
 #playerForm,#otpForm,#resultBox{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:85%;max-width:360px;background:var(--dark-bg);border:2px solid var(--gold);border-radius:15px;padding:20px;z-index:25000;text-align:center;box-shadow:0 0 40px rgba(0,0,0,0.9);backdrop-filter:blur(6px);}
 .input-group{margin-bottom:12px;text-align:left;}
 .input-group label{color:#fff;font-size:13px;display:block;margin-bottom:6px;}
 .custom-input{width:100%;padding:10px;border-radius:8px;border:1px solid #444;background:rgba(255,255,255,0.06);color:#fff;font-size:15px;box-sizing:border-box;}
-.submit-btn{width:100%;background:var(--gold);border:none;padding:12px;border-radius:8px;font-weight:800;font-size:16px;cursor:pointer;margin-top:6px;color:#000;transition:0.3s;}
-.submit-btn:hover{transform:scale(1.02);}
+.submit-btn{width:100%;background:var(--gold);border:none;padding:12px;border-radius:8px;font-weight:800;font-size:16px;cursor:pointer;margin-top:6px;color:#000;}
 #wheelContainer{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20000;width:min(90vw,380px);height:min(90vw,380px);}
 canvas#wheelCanvas{width:100%;height:100%;filter:drop-shadow(0 0 15px rgba(0,0,0,0.8));transition:transform 4s cubic-bezier(0.1,0,0.2,1);}
 #pointer{position:absolute;top:-35px;left:50%;transform:translateX(-50%);z-index:21000;width:60px;height:70px;background:linear-gradient(to bottom,var(--gold-light),var(--gold),var(--gold-dark));clip-path:polygon(50% 100%,100% 0,50% 25%,0 0);filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5));}
-#rewardMsg{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);padding:20px 30px;background:rgba(0,0,0,0.92);border:2px solid var(--gold);color:var(--gold);font-size:20px;font-weight:800;border-radius:12px;z-index:26000;text-align:center;box-shadow:0 0 50px rgba(212,175,55,0.3);opacity:0;transition:opacity 0.5s;}
+#rewardMsg{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);padding:20px 30px;background:rgba(0,0,0,0.92);border:2px solid var(--gold);color:var(--gold);font-size:20px;font-weight:800;border-radius:12px;z-index:26000;text-align:center;box-shadow:0 0 50px rgba(212,175,55,0.3);}
 .muted { color: #bbb; font-size: 13px; margin-top:6px; }
 .small { font-size: 13px; color: #fff; opacity:0.9; }
 .danger { color: #ff6b6b; }
@@ -95,194 +94,241 @@ canvas#wheelCanvas{width:100%;height:100%;filter:drop-shadow(0 0 15px rgba(0,0,0
 
   </a-entity>
 </a-entity>
+
+
 </a-scene>
 
+<!-- ✅ SCRIPT MUST BE OUTSIDE THE SCENE -->
 <script>
-/* ---------------- VIDEO ASPECT ---------------- */
 const video = document.querySelector("#myVideo");
 const videoPlane = document.querySelector("#videoPlane");
-video.addEventListener("loadedmetadata", ()=>{
+
+video.addEventListener("loadedmetadata", () => {
   const w = video.videoWidth;
   const h = video.videoHeight;
-  const aspect = w/h;
-  videoPlane.setAttribute("width",1.0);
-  videoPlane.setAttribute("height",1.0/aspect);
+  const aspect = w / h;
+
+  const baseWidth = 1.0; // adjust if you want bigger/smaller size
+
+  videoPlane.setAttribute("width", baseWidth);
+  videoPlane.setAttribute("height", baseWidth / aspect);
 });
+</script>
 
-/* ---------------- CONFIG ---------------- */
-const WEBHOOK_URL="https://script.google.com/macros/s/AKfycbzGhvlCPaaeK6oApJXT3yBszywUSSJl05pypgFXr9-KYXMmBqtH1Hw4G6BbmSRQFYJS/exec";
-const LOCAL_STORAGE_KEY="rudra_ar_played_v1";
+<script>
+/* ----------------------- CONFIG ----------------------- */
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyTrolgsb3koOBPRiFKp8d1N4zWYLjx8mnciG-ioWhTOeo5EWlx6dhvGsd_8Z8MW03j/exec"; 
+const LOCAL_STORAGE_KEY = "rudra_ar_played_v1";
 
-const CONFIG={
-  rewards:["Thank You","Mystery","10% OFF","Free Gift","Try Again","Jackpot","Bonus","Voucher"],
-  discountRewards:["10% OFF","Free Gift","Jackpot","Bonus","Voucher"],
-  colors:["#800000","#664000","#a07c00","#00283c","#3c0080","#003c14","#500028","#00323c"]
+/* Rewards config */
+const CONFIG = {
+  rewards: ["Thank You","Mystery","10% OFF","Free Gift","Try Again","Jackpot","Bonus","Voucher"],
+  discountRewards: ["10% OFF","Free Gift","Jackpot","Bonus","Voucher"],
+  colors: ["#800000","#664000","#a07c00","#00283c","#3c0080","#003c14","#500028","#00323c"]
 };
 
-const rewardToCode={
-  "10% OFF":"WELCOME10",
-  "Free Gift":"FREESHIP",
-  "Jackpot":"SP199",
-  "Bonus":"BOGO20",
-  "Voucher":"SAVE100"
+/* Reward → fixed client discount codes */
+const rewardToCode = {
+  "10% OFF": "WELCOME10",
+  "Free Gift": "FREESHIP",
+  "Jackpot": "SP199",
+  "Bonus": "BOGO20",
+  "Voucher": "SAVE100"
 };
 
-/* ---------------- DOM ---------------- */
-const status=document.querySelector("#status");
-const arChoices=document.querySelector("#arChoices");
-const spinBtn=document.querySelector("#choice1");
-const playerForm=document.querySelector("#playerForm");
-const savePlayerBtn=document.querySelector("#savePlayerBtn");
-const wheelContainer=document.querySelector("#wheelContainer");
-const wheelCanvas=document.querySelector("#wheelCanvas");
-const rewardMsg=document.querySelector("#rewardMsg");
-const otpForm=document.querySelector("#otpForm");
-const otpInput=document.querySelector("#otpInput");
-const verifyOtpBtn=document.querySelector("#verifyOtpBtn");
-const resultBox=document.querySelector("#resultBox");
-const resultTitle=document.querySelector("#resultTitle");
-const resultSub=document.querySelector("#resultSub");
-const otpInfo=document.querySelector("#otpInfo");
-const ctx=wheelCanvas.getContext("2d");
-const scene=document.querySelector("a-scene");
+/* DOM */
+const status = document.querySelector("#status");
+const arChoices = document.querySelector("#arChoices");
+const spinBtn = document.querySelector("#choice1");
+const playerForm = document.querySelector("#playerForm");
+const savePlayerBtn = document.querySelector("#savePlayerBtn");
+const wheelContainer = document.querySelector("#wheelContainer");
+const wheelCanvas = document.querySelector("#wheelCanvas");
+const rewardMsg = document.querySelector("#rewardMsg");
+const otpForm = document.querySelector("#otpForm");
+const otpInput = document.querySelector("#otpInput");
+const verifyOtpBtn = document.querySelector("#verifyOtpBtn");
+const resultBox = document.querySelector("#resultBox");
+const resultTitle = document.querySelector("#resultTitle");
+const resultSub = document.querySelector("#resultSub");
+const otpInfo = document.querySelector("#otpInfo");
+const ctx = wheelCanvas.getContext("2d");
+const scene = document.querySelector("a-scene");
 
-/* ---------------- STATE ---------------- */
-let currentRotation=0;
-let hasSpun=false;
-let buttonsVisible=false;
-let playerData={name:"",email:"",phone:""};
-let currentReward="";
-const urlParams=new URLSearchParams(window.location.search);
-const cardID=urlParams.get("card")||"CARD_DEFAULT";
+/* State */
+let currentRotation = 0;
+let hasSpun = false;
+let buttonsVisible = false;
+let playerData = { name: "", email: "", phone: "" };
+let currentReward = "";
 
-if(localStorage.getItem(LOCAL_STORAGE_KEY)){
-  hasSpun=true;
-  spinBtn.disabled=true;
-  spinBtn.innerText="ALREADY PLAYED";
+/* Unique card ID from QR/URL */
+const urlParams = new URLSearchParams(window.location.search);
+const cardID = urlParams.get("card") || "CARD_DEFAULT";
+
+/* Local block for second play (optional) */
+if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
+  hasSpun = true;
+  spinBtn.disabled = true;
+  spinBtn.innerText = "ALREADY PLAYED";
 }
 
-/* ---------------- DRAW WHEEL ---------------- */
-function drawWheel(){
-  const numSegments=CONFIG.rewards.length;
-  const arc=(2*Math.PI)/numSegments;
-  const radius=wheelCanvas.width/2;
-  const cx=radius,cy=radius;
-  const startOffset=-Math.PI/2;
+/* ----------------------- DRAW WHEEL ----------------------- */
+function drawWheel() {
+  const numSegments = CONFIG.rewards.length;
+  const arc = (2 * Math.PI) / numSegments;
+  const radius = wheelCanvas.width / 2;
+  const cx = radius, cy = radius;
+  const startOffset = -Math.PI / 2;
   ctx.clearRect(0,0,wheelCanvas.width,wheelCanvas.height);
-  for(let i=0;i<numSegments;i++){
-    const angle=startOffset+i*arc;
-    ctx.beginPath();ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,radius-4,angle,angle+arc);
-    ctx.fillStyle=CONFIG.colors[i%CONFIG.colors.length];ctx.fill();
-    ctx.lineWidth=4;ctx.strokeStyle="#d4af37";ctx.stroke();
-    ctx.save();ctx.translate(cx,cy);ctx.rotate(angle+arc/2);
-    ctx.textAlign="right";ctx.fillStyle="#fff";ctx.font="bold 30px Montserrat";
-    ctx.fillText(CONFIG.rewards[i],radius-45,12);ctx.restore();
+  for (let i = 0; i < numSegments; i++) {
+    const angle = startOffset + (i * arc);
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius - 4, angle, angle + arc);
+    ctx.fillStyle = CONFIG.colors[i % CONFIG.colors.length]; ctx.fill();
+    ctx.lineWidth = 4; ctx.strokeStyle = "#d4af37"; ctx.stroke();
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle + arc/2);
+    ctx.textAlign = "right"; ctx.fillStyle = "#fff"; ctx.font = "bold 30px Montserrat";
+    ctx.fillText(CONFIG.rewards[i], radius - 45, 12); ctx.restore();
   }
 }
 drawWheel();
 
-/* ---------------- AR EVENTS ---------------- */
-scene.addEventListener("targetFound",()=>{
-  status.innerText="Video Playing...";
-  try{video.play();}catch(e){}
-  if(!buttonsVisible){
-    setTimeout(()=>{
-      arChoices.style.display="block";
-      arChoices.style.opacity=1;
-      status.innerText="";
-      buttonsVisible=true;
-    },3000);
-  }
+/* ----------------------- AR EVENTS ----------------------- */
+scene.addEventListener("targetFound", () => {
+  status.innerText = "Video Playing...";
+  const video = document.querySelector("#myVideo");
+  try { video.play(); } catch(e){}
+  if(!buttonsVisible){ setTimeout(()=>{arChoices.style.display="block";status.innerText="";buttonsVisible=true;},10000);}
 });
-scene.addEventListener("targetLost",()=>{
-  try{video.pause();}catch(e){}
-  status.innerText="Target Lost";
-});
+scene.addEventListener("targetLost", ()=>{ const video = document.querySelector("#myVideo"); try{video.pause();}catch(e){} status.innerText="Target Lost";});
 
-/* ---------------- SPIN FLOW ---------------- */
-spinBtn.addEventListener("click",()=>{
+/* ----------------------- FLOW ----------------------- */
+spinBtn.addEventListener("click", () => {
   if(hasSpun) return;
-  arChoices.style.opacity=0;
-  setTimeout(()=>{arChoices.style.display="none";},500);
+  arChoices.style.display="none";
   wheelContainer.style.display="block";
-  setTimeout(startSpin,300);
+  setTimeout(startSpin,500);
 });
 
-function startSpin(){
-  const spinRounds=5+Math.random()*5;
-  const extra=Math.random()*360;
-  const total=(spinRounds*360)+extra;
-  currentRotation+=total;
+/* ----------------------- SPIN LOGIC ----------------------- */
+function startSpin() {
+  const spinRounds = 5 + Math.random() * 5;
+  const extra = Math.random()*360;
+  const total = (spinRounds*360)+extra;
+  currentRotation += total;
   wheelCanvas.style.transform=`rotate(${currentRotation}deg)`;
   setTimeout(()=>finishSpin(currentRotation),4200);
 }
 
 function finishSpin(rotation){
-  const numSegments=CONFIG.rewards.length;
-  const deg=360/numSegments;
-  const actual=rotation%360;
-  const index=Math.floor(((360-actual)%360)/deg);
-  currentReward=CONFIG.rewards[index];
+  const numSegments = CONFIG.rewards.length;
+  const deg = 360/numSegments;
+  const actual = rotation%360;
+  const index = Math.floor(((360-actual)%360)/deg);
+  currentReward = CONFIG.rewards[index];
   rewardMsg.innerText=`YOU WON: ${currentReward.toUpperCase()}`;
   rewardMsg.style.display="block";
-  rewardMsg.style.opacity=1;
-  confetti({particleCount:150,spread:60});
+  confetti();
   hasSpun=true;
   localStorage.setItem(LOCAL_STORAGE_KEY,"true");
+
   setTimeout(()=>{
-    rewardMsg.style.opacity=0;
-    setTimeout(()=>{rewardMsg.style.display="none";playerForm.style.display="block";},500);
+    rewardMsg.style.display="none";
+    playerForm.style.display="block";
     if(CONFIG.discountRewards.includes(currentReward)){
-      otpInfo.innerText=`You won "${currentReward}". Fill details to receive OTP.`;
-    }else{
-      otpInfo.innerText=`You won "${currentReward}". Fill details to save result.`;
-    }
+      otpInfo.innerText=`You won "${currentReward}". Fill details to receive an OTP and claim your discount.`;
+    } else { otpInfo.innerText=`You won "${currentReward}". Fill details to save result.`; }
   },1200);
 }
 
-/* ---------------- PLAYER SAVE ---------------- */
-savePlayerBtn.addEventListener("click",async ()=>{
-  const name=document.querySelector("#pName").value.trim();
-  const email=document.querySelector("#pEmail").value.trim();
-  const phone=document.querySelector("#pPhone").value.trim();
-  if(!name||!email||!phone){alert("Please fill all fields.");return;}
+/* ----------------------- SAVE PLAYER ----------------------- */
+savePlayerBtn.addEventListener("click", async ()=>{
+  const name = document.querySelector("#pName").value.trim();
+  const email = document.querySelector("#pEmail").value.trim();
+  const phone = document.querySelector("#pPhone").value.trim();
+  if(!name||!email||!phone){alert("Please fill all fields."); return;}
   playerData={name,email,phone};
+
   try{
-    const checkRes=await postJson(WEBHOOK_URL,{action:"checkPhone",email,phone,cardID});
+    // Check eligibility (including cardID)
+    const checkRes = await postJson(WEBHOOK_URL,{action:"checkPhone",email,phone,cardID});
     if(checkRes.status==="BLOCKED" || checkRes.status==="CARD_USED"){ 
       alert("Already used!"); 
       playerForm.style.display="none"; 
       return; 
     }
   }catch(e){console.warn(e);}
+
+  // Save and send OTP if needed
   try{
-    const saveRes=await postJsonWithFallback(WEBHOOK_URL,{action:"sendOTP",name,email,phone,reward:currentReward,cardID});
+    const saveRes = await postJsonWithFallback(WEBHOOK_URL,{
+      action:"sendOTP",
+      name,email,phone,reward:currentReward,cardID
+    });
     if(CONFIG.discountRewards.includes(currentReward)){
-      playerForm.style.display="none";otpForm.style.display="block";otpInfo.innerText=`OTP sent to ${email}.`;
-    }else{
-      playerForm.style.display="none";resultTitle.innerText="THANK YOU!";resultSub.innerText=`Saved result: ${currentReward}`;resultBox.style.display="block";
+      playerForm.style.display="none";
+      otpForm.style.display="block";
+      otpInfo.innerText=`OTP sent to ${email}.`;
+    } else {
+      playerForm.style.display="none";
+      resultTitle.innerText="THANK YOU!";
+      resultSub.innerText=`Saved result: ${currentReward}`;
+      resultBox.style.display="block";
     }
-  }catch(e){console.error(e);alert("Error sending OTP.");}
+  }catch(e){ console.error(e); alert("Error sending OTP."); }
 });
 
-/* ---------------- OTP VERIFY ---------------- */
+/* ----------------------- VERIFY OTP ----------------------- */
 verifyOtpBtn.addEventListener("click",async ()=>{
-  const otp=otpInput.value.trim();if(!otp){alert("Enter OTP");return;}
+  const otp=otpInput.value.trim();
+  if(!otp){alert("Enter OTP");return;}
   try{
-    const res=await postJsonWithFallback(WEBHOOK_URL,{action:"verifyOTP",phone:playerData.phone,otp,cardID});
+    const res = await postJsonWithFallback(WEBHOOK_URL,{
+      action:"verifyOTP",
+      phone:playerData.phone,
+      otp,
+      cardID
+    });
     if(res.status==="VERIFIED"){
-      const code=res.discount_code||rewardToCode[currentReward];
-      resultTitle.innerText="CONGRATS!";resultSub.innerText=code?`Discount code: ${code}`:"Discount claimed.";resultBox.style.display="block";otpForm.style.display="none";
-    }else{alert("Invalid OTP.");}
-  }catch(e){console.error(e);alert("OTP verify failed.");}
+      const code = res.discount_code || rewardToCode[currentReward];
+      resultTitle.innerText="CONGRATS!";
+      resultSub.innerText=code?`Discount code: ${code}`:"Discount claimed.";
+      resultBox.style.display="block";
+      otpForm.style.display="none";
+    } else { alert("Invalid OTP."); }
+  }catch(e){ console.error(e); alert("OTP verify failed."); }
 });
 
-/* ---------------- HELPERS ---------------- */
-async function postJson(url,payload){const r=await fetch(url,{method:"POST",mode:"cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const txt=await r.text();try{return JSON.parse(txt);}catch(e){return txt;}}
-async function getFallback(url,params){const qs=Object.keys(params).map(k=>encodeURIComponent(k)+"="+encodeURIComponent(params[k])).join("&");const r=await fetch(url+"?"+qs,{method:"GET",mode:"cors"});const txt=await r.text();try{return JSON.parse(txt);}catch(e){return txt;}}
-async function postJsonWithFallback(url,payload){try{return await postJson(url,payload);}catch(e){return await getFallback(url,payload);}
+/* ----------------------- HELPER ----------------------- */
+async function postJson(url, payload) {
+  const res = await fetch(url, {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
 }
+
+async function getFallback(url, params) {
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(`${url}?${qs}`, { method: "GET" });
+  return await res.json();
+}
+
+async function postJsonWithFallback(url, payload) {
+  try {
+    return await postJson(url, payload);
+  } catch (e) {
+    console.warn("POST failed, trying GET", e);
+    return await getFallback(url, payload);
+  }
+}
+
+
 </script>
 </body>
 </html>
