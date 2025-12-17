@@ -269,7 +269,7 @@ savePlayerBtn.addEventListener("click", async () => {
   }
 
   // Send OTP
-  const saveRes = await postJsonWithFallback(WEBHOOK_URL, {
+  const saveRes = await postJsonStrict(WEBHOOK_URL, {
     action: "sendOTP",
     name,
     email,
@@ -306,7 +306,7 @@ verifyOtpBtn.addEventListener("click", async () => {
     return;
   }
 
-  const res = await postJsonWithFallback(WEBHOOK_URL, {
+  const res = await postJsonStrict(WEBHOOK_URL, {
     action: "verifyOTP",
     phone: playerData.phone,
     otp,
@@ -352,6 +352,18 @@ async function postJsonWithFallback(url, payload) {
     console.warn("POST failed, trying GET", e);
     return await getFallback(url, payload);
   }
+}
+
+async function postJsonStrict(url, payload) {
+  const res = await fetch(url, {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
 }
 
 
