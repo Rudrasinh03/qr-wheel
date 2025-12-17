@@ -243,62 +243,88 @@ function finishSpin(rotation){
 }
 
 /* ----------------------- SAVE PLAYER ----------------------- */
-savePlayerBtn.addEventListener("click", async ()=>{
-  const name = document.querySelector("#pName").value.trim();
-  const email = document.querySelector("#pEmail").value.trim();
-  const phone = document.querySelector("#pPhone").value.trim();
-  if(!name||!email||!phone){alert("Please fill all fields."); return;}
-  playerData={name,email,phone};
+savePlayerBtn.addEventListener("click", async () => {
+  const name = pName.value.trim();
+  const email = pEmail.value.trim();
+  const phone = pPhone.value.trim();
 
-  try{
-    // Check eligibility (including cardID)
-    const checkRes = await postJson(WEBHOOK_URL,{action:"checkPhone",email,phone,cardID});
-    if(checkRes.status==="BLOCKED" || checkRes.status==="CARD_USED"){ 
-      alert("Already used!"); 
-      playerForm.style.display="none"; 
-      return; 
-    }
-  }catch(e){console.warn(e);}
+  if (!name || !email || !phone) {
+    alert("Please fill all fields.");
+    return;
+  }
 
-  // Save and send OTP if needed
-  try{
-    const saveRes = await postJsonWithFallback(WEBHOOK_URL,{
-      action:"sendOTP",
-      name,email,phone,reward:currentReward,cardID
-    });
-    if(CONFIG.discountRewards.includes(currentReward)){
-      playerForm.style.display="none";
-      otpForm.style.display="block";
-      otpInfo.innerText=`OTP sent to ${email}.`;
+  playerData = { name, email, phone };
+
+  // Eligibility check
+  const checkRes = await postJsonWithFallback(WEBHOOK_URL, {
+    action: "checkPhone",
+    email,
+    phone,
+    cardID
+  });
+
+  if (checkRes.status !== "OK") {
+    alert("Already used!");
+    return;
+  }
+
+  // Send OTP
+  const saveRes = await postJsonWithFallback(WEBHOOK_URL, {
+    action: "sendOTP",
+    name,
+    email,
+    phone,
+    reward: currentReward,
+    cardID
+  });
+
+  if (saveRes.status === "OTP_SENT") {
+    playerForm.style.display = "none";
+
+    if (CONFIG.discountRewards.includes(currentReward)) {
+      otpForm.style.display = "block";
+      otpInfo.innerText = `OTP sent to ${email}`;
     } else {
-      playerForm.style.display="none";
-      resultTitle.innerText="THANK YOU!";
-      resultSub.innerText=`Saved result: ${currentReward}`;
-      resultBox.style.display="block";
+      resultTitle.innerText = "THANK YOU!";
+      resultSub.innerText = `Saved result: ${currentReward}`;
+      resultBox.style.display = "block";
     }
-  }catch(e){ console.error(e); alert("Error sending OTP."); }
+  } else if (saveRes.status === "OTP_ALREADY_SENT") {
+    alert("OTP already sent. Please check your email.");
+    otpForm.style.display = "block";
+  } else {
+    alert("Failed to send OTP.");
+  }
 });
+
 
 /* ----------------------- VERIFY OTP ----------------------- */
-verifyOtpBtn.addEventListener("click",async ()=>{
-  const otp=otpInput.value.trim();
-  if(!otp){alert("Enter OTP");return;}
-  try{
-    const res = await postJsonWithFallback(WEBHOOK_URL,{
-      action:"verifyOTP",
-      phone:playerData.phone,
-      otp,
-      cardID
-    });
-    if(res.status==="VERIFIED"){
-      const code = res.discount_code || rewardToCode[currentReward];
-      resultTitle.innerText="CONGRATS!";
-      resultSub.innerText=code?`Discount code: ${code}`:"Discount claimed.";
-      resultBox.style.display="block";
-      otpForm.style.display="none";
-    } else { alert("Invalid OTP."); }
-  }catch(e){ console.error(e); alert("OTP verify failed."); }
+verifyOtpBtn.addEventListener("click", async () => {
+  const otp = otpInput.value.trim();
+  if (!otp) {
+    alert("Enter OTP");
+    return;
+  }
+
+  const res = await postJsonWithFallback(WEBHOOK_URL, {
+    action: "verifyOTP",
+    phone: playerData.phone,
+    otp,
+    cardID
+  });
+
+  if (res.status === "VERIFIED") {
+    const code = res.discount_code || rewardToCode[currentReward];
+
+    otpForm.style.display = "none";
+    resultTitle.innerText = "CONGRATS!";
+    resultSub.innerText = `Discount code: ${code}`;
+    resultBox.style.display = "block";
+  } else {
+    alert("Invalid or expired OTP.");
+  }
 });
+
 
 /* ----------------------- HELPER ----------------------- */
 async function postJson(url, payload) {
