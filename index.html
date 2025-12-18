@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AR Luxury Data Spin - Fixed Codes</title>
+<title>Svaraa</title>
 
-<!-- A-Frame / MindAR -->
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -40,7 +39,7 @@ canvas#wheelCanvas{width:100%;height:100%;filter:drop-shadow(0 0 15px rgba(0,0,0
 <div id="arChoices"><button id="choice1" class="choice-btn">ENTER TO SPIN</button></div>
 
 <div id="playerForm">
-  <h2 style="color:var(--gold);margin:6px 0 12px 0;">Player Details</h2>
+  <h2 style="color:var(--gold);margin:6px 0 12px 0;">Customer Details</h2>
   <div class="input-group"><label>Full name</label><input id="pName" class="custom-input" placeholder="Your name"></div>
   <div class="input-group"><label>Email</label><input id="pEmail" class="custom-input" placeholder="you@example.com"></div>
   <div class="input-group"><label>Phone</label><input id="pPhone" class="custom-input" placeholder="1234567890"></div>
@@ -67,7 +66,7 @@ canvas#wheelCanvas{width:100%;height:100%;filter:drop-shadow(0 0 15px rgba(0,0,0
   <div id="resultSub" class="small"></div>
 </div>
 
-<a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: true; uiError:no; uiLoading:no;"
+<a-scene mindar-image="imageTargetSrc: targets (1).mind; autoStart: true; uiError:no; uiLoading:no; filterMinCF:0.001; filterBeta: 0.01;"
          color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights: true"
          vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
@@ -81,53 +80,70 @@ canvas#wheelCanvas{width:100%;height:100%;filter:drop-shadow(0 0 15px rgba(0,0,0
   </a-assets>
 
   <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-<a-entity mindar-image-target="targetIndex: 0">
-  <a-entity id="smoothedTarget"
-            mindar-image-smoother="interpolationFactor: 0.1">
 
+  <a-entity id="targetContainer" mindar-image-target="targetIndex: 0">
       <a-video id="videoPlane"
                src="#myVideo"
                position="0 0 0"
                rotation="0 0 0"
                material="shader: flat;">
       </a-video>
-
   </a-entity>
-</a-entity>
-
-
 </a-scene>
 
-<!-- ✅ SCRIPT MUST BE OUTSIDE THE SCENE -->
 <script>
+/* ----------------------- STABILIZATION LOGIC ----------------------- */
 const video = document.querySelector("#myVideo");
 const videoPlane = document.querySelector("#videoPlane");
+const targetContainer = document.querySelector("#targetContainer");
+let lostTimeout; // For Target Persistence
 
 video.addEventListener("loadedmetadata", () => {
   const w = video.videoWidth;
   const h = video.videoHeight;
   const aspect = w / h;
-
-  const baseWidth = 1.0; // adjust if you want bigger/smaller size
-
+  const baseWidth = 1.0; 
   videoPlane.setAttribute("width", baseWidth);
   videoPlane.setAttribute("height", baseWidth / aspect);
 });
-</script>
 
-<script>
-/* ----------------------- CONFIG ----------------------- */
+// Target Found: Immediate action
+targetContainer.addEventListener("targetFound", () => {
+  clearTimeout(lostTimeout); // Cancel the disappearance timer
+  status.innerText = "Video Playing...";
+  try { video.play(); } catch(e){}
+  
+  if(!buttonsVisible){ 
+    setTimeout(()=>{
+      arChoices.style.display="block";
+      status.innerText="";
+      buttonsVisible=true;
+    }, 10000);
+  }
+});
+
+// Target Lost: ADDED PERSISTENCE (2 second delay before hiding)
+targetContainer.addEventListener("targetLost", () => {
+  status.innerText = "Target Lost - Hold Still";
+  
+  lostTimeout = setTimeout(() => {
+    try { video.pause(); } catch(e){}
+    status.innerText = "Point camera at image";
+  }, 2000); // Wait 2 seconds before actually "losing" it
+});
+
+/* ----------------------- ALL ORIGINAL GAME LOGIC ----------------------- */
+/* (Keeping your original variables and functions below) */
+
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyTrolgsb3koOBPRiFKp8d1N4zWYLjx8mnciG-ioWhTOeo5EWlx6dhvGsd_8Z8MW03j/exec"; 
 const LOCAL_STORAGE_KEY = "rudra_ar_played_v1";
 
-/* Rewards config */
 const CONFIG = {
   rewards: ["Thank You","Mystery","10% OFF","Free Gift","Try Again","Jackpot","Bonus","Voucher"],
   discountRewards: ["10% OFF","Free Gift","Jackpot","Bonus","Voucher"],
-  colors: ["#800000","#664000","#a07c00","#00283c","#3c0080","#003c14","#500028","#00323c"]
+  colors: ["rgb(30,108,110)","rgb(0, 0, 0)","rgb(30,108,110)","rgb(0, 0, 0)","rgb(30,108,110)","rgb(0, 0, 0)","rgb(30,108,110)","rgb(0, 0, 0)"]
 };
 
-/* Reward → fixed client discount codes */
 const rewardToCode = {
   "10% OFF": "WELCOME10",
   "Free Gift": "FREESHIP",
@@ -136,7 +152,6 @@ const rewardToCode = {
   "Voucher": "SAVE100"
 };
 
-/* DOM */
 const status = document.querySelector("#status");
 const arChoices = document.querySelector("#arChoices");
 const spinBtn = document.querySelector("#choice1");
@@ -155,25 +170,21 @@ const otpInfo = document.querySelector("#otpInfo");
 const ctx = wheelCanvas.getContext("2d");
 const scene = document.querySelector("a-scene");
 
-/* State */
 let currentRotation = 0;
 let hasSpun = false;
 let buttonsVisible = false;
 let playerData = { name: "", email: "", phone: "" };
 let currentReward = "";
 
-/* Unique card ID from QR/URL */
 const urlParams = new URLSearchParams(window.location.search);
 const cardID = urlParams.get("card") || "CARD_DEFAULT";
 
-/* Local block for second play (optional) */
 if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
   hasSpun = true;
   spinBtn.disabled = true;
   spinBtn.innerText = "ALREADY PLAYED";
 }
 
-/* ----------------------- DRAW WHEEL ----------------------- */
 function drawWheel() {
   const numSegments = CONFIG.rewards.length;
   const arc = (2 * Math.PI) / numSegments;
@@ -194,16 +205,6 @@ function drawWheel() {
 }
 drawWheel();
 
-/* ----------------------- AR EVENTS ----------------------- */
-scene.addEventListener("targetFound", () => {
-  status.innerText = "Video Playing...";
-  const video = document.querySelector("#myVideo");
-  try { video.play(); } catch(e){}
-  if(!buttonsVisible){ setTimeout(()=>{arChoices.style.display="block";status.innerText="";buttonsVisible=true;},10000);}
-});
-scene.addEventListener("targetLost", ()=>{ const video = document.querySelector("#myVideo"); try{video.pause();}catch(e){} status.innerText="Target Lost";});
-
-/* ----------------------- FLOW ----------------------- */
 spinBtn.addEventListener("click", () => {
   if(hasSpun) return;
   arChoices.style.display="none";
@@ -211,7 +212,6 @@ spinBtn.addEventListener("click", () => {
   setTimeout(startSpin,500);
 });
 
-/* ----------------------- SPIN LOGIC ----------------------- */
 function startSpin() {
   const spinRounds = 5 + Math.random() * 5;
   const extra = Math.random()*360;
@@ -242,45 +242,21 @@ function finishSpin(rotation){
   },1200);
 }
 
-/* ----------------------- SAVE PLAYER ----------------------- */
 savePlayerBtn.addEventListener("click", async () => {
   const name = pName.value.trim();
   const email = pEmail.value.trim();
   const phone = pPhone.value.trim();
-
-  if (!name || !email || !phone) {
-    alert("Please fill all fields.");
-    return;
-  }
-
+  if (!name || !email || !phone) { alert("Please fill all fields."); return; }
   playerData = { name, email, phone };
-
-  // Eligibility check
   const checkRes = await postJsonWithFallback(WEBHOOK_URL, {
-    action: "checkPhone",
-    email,
-    phone,
-    cardID
+    action: "checkPhone", email, phone, cardID
   });
-
-  if (checkRes.status !== "OK") {
-    alert("Already used!");
-    return;
-  }
-
-  // Send OTP
+  if (checkRes.status !== "OK") { alert("Already used!"); return; }
   const saveRes = await postJsonStrict(WEBHOOK_URL, {
-    action: "sendOTP",
-    name,
-    email,
-    phone,
-    reward: currentReward,
-    cardID
+    action: "sendOTP", name, email, phone, reward: currentReward, cardID
   });
-
   if (saveRes.status === "OTP_SENT") {
     playerForm.style.display = "none";
-
     if (CONFIG.discountRewards.includes(currentReward)) {
       otpForm.style.display = "block";
       otpInfo.innerText = `OTP sent to ${email}`;
@@ -292,81 +268,49 @@ savePlayerBtn.addEventListener("click", async () => {
   } else if (saveRes.status === "OTP_ALREADY_SENT") {
     alert("OTP already sent. Please check your email.");
     otpForm.style.display = "block";
-  } else {
-    alert("Failed to send OTP.");
-  }
+  } else { alert("Failed to send OTP."); }
 });
 
-
-/* ----------------------- VERIFY OTP ----------------------- */
 verifyOtpBtn.addEventListener("click", async () => {
   const otp = otpInput.value.trim();
-  if (!otp) {
-    alert("Enter OTP");
-    return;
-  }
-
+  if (!otp) { alert("Enter OTP"); return; }
   const res = await postJsonStrict(WEBHOOK_URL, {
-    action: "verifyOTP",
-    phone: playerData.phone,
-    otp,
-    cardID
+    action: "verifyOTP", phone: playerData.phone, otp, cardID
   });
-
   if (res.status === "VERIFIED") {
     const code = res.discount_code || rewardToCode[currentReward];
-
     otpForm.style.display = "none";
     resultTitle.innerText = "CONGRATS!";
     resultSub.innerText = `Discount code: ${code}`;
     resultBox.style.display = "block";
-  } else {
-    alert("Invalid or expired OTP.");
-  }
+  } else { alert("Invalid or expired OTP."); }
 });
 
-
-/* ----------------------- HELPER ----------------------- */
 async function postJson(url, payload) {
   const res = await fetch(url, {
-    method: "POST",
-    mode: "cors",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
+    method: "POST", mode: "cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
   });
   return await res.json();
 }
-
 async function getFallback(url, params) {
   const qs = new URLSearchParams(params).toString();
   const res = await fetch(`${url}?${qs}`, { method: "GET" });
   return await res.json();
 }
-
 async function postJsonWithFallback(url, payload) {
-  try {
-    return await postJson(url, payload);
-  } catch (e) {
-    console.warn("POST failed, trying GET", e);
-    return await getFallback(url, payload);
-  }
+  try { return await postJson(url, payload); } 
+  catch (e) { return await getFallback(url, payload); }
 }
-
 async function postJsonStrict(url, payload) {
   const res = await fetch(url, {
-    method: "POST",
-    mode: "cors",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
+    method: "POST", mode: "cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
   });
   return await res.json();
 }
-
-
 </script>
 </body>
 </html>
